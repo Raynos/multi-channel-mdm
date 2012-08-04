@@ -1,10 +1,10 @@
 var through = require("through")
     , multiChannelRegExp = /(multi-channel-)([\w\W]*)/
-    , streams = {}
 
 module.exports = createShoeConnection
 
 function createShoeConnection(callback) {
+    var streams = proxyConnections.streams = {}
 
     return proxyConnections
 
