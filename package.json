@@ -1,0 +1,35 @@
+{
+  "name": "multi-channel-shoe",
+  "version": "0.0.1",
+  "description": "Create multiple channels using shoe",
+  "keywords": [],
+  "author": "Raynos <raynos2@gmail.com>",
+  "repository": "git://github.com/Raynos/multi-channel-shoe.git",
+  "main": "index",
+  "browserify": "browser.js",
+  "homepage": "https://github.com/Raynos/multi-channel-shoe",
+  "contributors": [
+    {
+      "name": "Jake Verbaten"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/Raynos/multi-channel-shoe/issues",
+    "email": "raynos2@gmail.com"
+  },
+  "dependencies": {
+    "through": "~0.1.2"
+  },
+  "devDependencies": {
+    "mux-demux": "~1.1.0"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/Raynos/multi-channel-shoe/raw/master/LICENSE"
+    }
+  ],
+  "scripts": {
+    "test": "make node-test"
+  }
+}
