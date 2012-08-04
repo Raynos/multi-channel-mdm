@@ -1,10 +1,14 @@
 var through = require("through")
+    , MemoryStore = require("memory-store")
     , multiChannelRegExp = /(multi-channel-)([\w\W]*)/
 
 module.exports = createShoeConnection
 
-function createShoeConnection(callback) {
-    var streams = proxyConnections.streams = {}
+function createShoeConnection(store, callback) {
+    if (typeof store === "function" || arguments.length === 0) {
+        callback = store
+        store = MemoryStore.createStore()
+    }
 
     return proxyConnections
 
@@ -22,14 +26,34 @@ function createShoeConnection(callback) {
         }
 
         var name = regExpResult[2]
-            , communicationStream = streams[name]
+            
+        store.get(name, handleStream)
 
-        if (!communicationStream) {
-            communicationStream = streams[name] = through()
+        function handleStream(err, data) {
+            if (err) {
+                return callback && callback(err)
+            }
+
+            var communicationStream = data && data.stream
+
+            if (!communicationStream) {
+                communicationStream = through()
+                store.set(name, {
+                    stream: communicationStream
+                }, returnError)
+            }
+
+            communicationStream.pipe(stream).pipe(communicationStream, {
+                end: false
+            })
+
+            callback && callback(stream)
         }
+    }
 
-        communicationStream.pipe(stream).pipe(communicationStream, {
-            end: false
-        })
+    function returnError(err) {
+        if (err) {
+            return callback && callback(err)
+        }
     }
 }
