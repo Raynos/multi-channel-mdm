@@ -4,7 +4,7 @@ Create multiple channels using mux-demux
 
 ## Example server
 
-    var multiChannel = require("..")
+    var multiChannel = require("multi-channel-mdm")
         , net = require("net")
         , MuxDemux = require("mux-demux")
         , streamStore = require("memory-store").createStore()
