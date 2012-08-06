@@ -1,44 +1,47 @@
 var through = require("through")
     , MemoryStore = require("memory-store").createStore
+    , partial = require("ap").partial
     , multiChannelRegExp = /(multi-channel-)([\w\W]*)/
 
-module.exports = createShoeConnection
+module.exports = MultiChannel
 
-function createShoeConnection(store) {
+function MultiChannel(store) {
     if (!store) {
         store = MemoryStore()
     }
 
-    return proxyConnections
+    return partial(streamFinder, store)
+}
 
-    function proxyConnections(stream, params) {
-        var streamName = params.streamName
-            
-        store.get(streamName, handleStream)
+function streamFinder(store, stream, params) {
+    var streamName = params.streamName
+        
+    store.get(streamName, streamSaver)
 
-        function handleStream(err, data) {
-            if (err) {
-                throw err
-            }
+    function streamSaver(error, data) {
+        if (error) {
+            return stream.emit("error", error)
+        }
 
-            var communicationStream = data && data.stream
+        var communicationStream = data && data.stream
 
-            if (!communicationStream) {
-                communicationStream = through()
-                store.set(streamName, {
-                    stream: communicationStream
-                }, returnError)
-            }
-
-            communicationStream.pipe(stream).pipe(communicationStream, {
-                end: false
-            })
+        if (!communicationStream) {
+            communicationStream = through()
+            store.set(streamName, {
+                stream: communicationStream
+            }, partial(pipeStreams, stream, communicationStream))
+        } else {
+            pipeStreams(stream, communicationStream)
         }
     }
+}
 
-    function returnError(err) {
-        if (err) {
-            throw err
-        }
+function pipeStreams(stream, communicationStream, error) {
+    if (error) {
+        stream.emit("error", error)
     }
+
+    communicationStream.pipe(stream).pipe(communicationStream, {
+        end: false
+    })
 }
