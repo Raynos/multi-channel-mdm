@@ -5,8 +5,8 @@ var net = require("net")
 
 mdm.pipe(con).pipe(mdm)
 
-var room1 = mdm.createStream("multi-channel-room1")
-    , room2 = mdm.createStream("multi-channel-room2")
+var room1 = mdm.createStream("/channel/room1")
+    , room2 = mdm.createStream("/channel/room2")
 
 room1.on("data", console.log.bind(console, "room1"))
 room2.on("data", console.log.bind(console, "room2"))

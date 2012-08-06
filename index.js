@@ -1,33 +1,20 @@
 var through = require("through")
-    , MemoryStore = require("memory-store")
+    , MemoryStore = require("memory-store").createStore
     , multiChannelRegExp = /(multi-channel-)([\w\W]*)/
 
 module.exports = createShoeConnection
 
-function createShoeConnection(store, callback) {
-    if (typeof store === "function" || arguments.length === 0) {
-        callback = store
-        store = MemoryStore.createStore()
+function createShoeConnection(store) {
+    if (!store) {
+        store = MemoryStore()
     }
 
     return proxyConnections
 
-    function proxyConnections(stream) {
-        var meta = stream.meta
-
-        if ("string" !== typeof meta) {
-            return callback && callback(stream)
-        }
-
-        var regExpResult = meta.match(multiChannelRegExp)
-
-        if (regExpResult === null) {
-            return callback && callback(stream)
-        }
-
-        var name = regExpResult[2]
+    function proxyConnections(stream, params) {
+        var streamName = params.streamName
             
-        store.get(name, handleStream)
+        store.get(streamName, handleStream)
 
         function handleStream(err, data) {
             if (err) {
@@ -38,7 +25,7 @@ function createShoeConnection(store, callback) {
 
             if (!communicationStream) {
                 communicationStream = through()
-                store.set(name, {
+                store.set(streamName, {
                     stream: communicationStream
                 }, returnError)
             }
@@ -46,8 +33,6 @@ function createShoeConnection(store, callback) {
             communicationStream.pipe(stream).pipe(communicationStream, {
                 end: false
             })
-
-            callback && callback(stream)
         }
     }
 
