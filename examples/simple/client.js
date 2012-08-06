@@ -1,6 +1,8 @@
 var net = require("net")
     , MuxDemux = require("mux-demux")
-    , mdm = MuxDemux()
+    , mdm = MuxDemux({
+        error: false
+    })
     , con = net.connect(8642)
 
 mdm.pipe(con).pipe(mdm)
