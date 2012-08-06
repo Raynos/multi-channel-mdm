@@ -5,8 +5,8 @@ var MultiChannel = require("../..")
 
 net.createServer(function (con) {
     var mdm = MuxDemux({
-            error: false
-        })
+        error: false
+    })
 
     mdm.on("connection", function (stream) {
         channel(stream, {
