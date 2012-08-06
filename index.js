@@ -18,7 +18,7 @@ function createShoeConnection(store) {
 
         function handleStream(err, data) {
             if (err) {
-                return callback && callback(err)
+                throw err
             }
 
             var communicationStream = data && data.stream
@@ -38,7 +38,7 @@ function createShoeConnection(store) {
 
     function returnError(err) {
         if (err) {
-            return callback && callback(err)
+            throw err
         }
     }
 }

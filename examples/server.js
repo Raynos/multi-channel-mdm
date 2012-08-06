@@ -4,6 +4,7 @@ var multiChannel = require("..")
     , streamStore = require("memory-store").createStore()
     , Router = require("routes").Router
     , router = new Router()
+    , Domain = require("domain").create
 
 router.addRoute("/channel/:streamName", multiChannel(streamStore))
 
@@ -13,9 +14,18 @@ net.createServer(function (con) {
     })
     mdm.on("connection", function (stream) {
         var route = router.match(stream.meta)
+            , domain = Domain()
+
+        domain.add(stream)
+
         if (route.fn) {
-            route.fn(stream, route.params, route.splats)
+            domain.bind(route.fn)(stream, route.params, route.splats)
         }
+
+        domain.on("error", function (err) {
+            console.log("error occurred!")
+            domain.dispose()
+        })
     })
     con.pipe(mdm).pipe(con)
 }).listen(8642)
