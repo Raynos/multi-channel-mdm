@@ -4,6 +4,10 @@ var boot = require('boot')
 var room1 = mdm.createStream("/channel/room1")
     , room2 = mdm.createStream("/channel/room2")
 
+mdm.on("connect", function () {
+    room1.write("die!")
+})
+
 room1.on("data", console.log.bind(console, "room1"))
 room2.on("data", console.log.bind(console, "room2"))
 
