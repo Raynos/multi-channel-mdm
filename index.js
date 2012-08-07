@@ -1,4 +1,5 @@
 var through = require("through")
+    , PauseStream = require("pause-stream")
     , MemoryStore = require("memory-store").createStore
     , partial = require("ap").partial
     , multiChannelRegExp = /(multi-channel-)([\w\W]*)/
@@ -15,6 +16,11 @@ function MultiChannel(store) {
 
 function streamFinder(store, stream, params) {
     var streamName = params.streamName
+        , buffer = PauseStream()
+
+    buffer.pause()
+
+    stream.pipe(buffer)
         
     store.get(streamName, streamSaver)
 
@@ -29,19 +35,22 @@ function streamFinder(store, stream, params) {
             communicationStream = through()
             store.set(streamName, {
                 stream: communicationStream
-            }, partial(pipeStreams, stream, communicationStream))
+            }, pipeStreams)
         } else {
-            pipeStreams(stream, communicationStream)
+            pipeStreams(null)
+        }
+
+
+        function pipeStreams(error) {
+            if (error) {
+                stream.emit("error", error)
+            }
+
+            buffer.pipe(communicationStream, {
+                end: false
+            }).pipe(stream)
+
+            buffer.resume()
         }
     }
-}
-
-function pipeStreams(stream, communicationStream, error) {
-    if (error) {
-        stream.emit("error", error)
-    }
-
-    communicationStream.pipe(stream).pipe(communicationStream, {
-        end: false
-    })
 }
