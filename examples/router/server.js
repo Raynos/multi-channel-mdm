@@ -1,27 +1,10 @@
-var multiChannel = require("../..")
-    , net = require("net")
-    , MuxDemux = require("mux-demux")
-    , streamStore = require("memory-store").createStore()
-    , Router = require("routes").Router
-    , router = new Router()
+var MultiChannel = require("../..")
+    , MuxDemux = require("mux-demux-net")
+    , StreamRouter = require("stream-router")
+    
+var router = StreamRouter()
+    , channel = MultiChannel()
 
-router.addRoute("/channel/:streamName", multiChannel(streamStore))
+MuxDemux(router, 8642)
 
-net.createServer(function (con) {
-    var mdm = MuxDemux({
-        error: false
-    })
-    mdm.on("connection", function (stream) {
-        var route = router.match(stream.meta)
-
-        if (route.fn) {
-            route.fn(stream, route.params)
-        }
-
-        stream.on("error", function (err) {
-            console.log("error occurred!", err.message)
-            stream.end()
-        })
-    })
-    con.pipe(mdm).pipe(con)
-}).listen(8642)
+router.addRoute("/channel/:streamName", channel)

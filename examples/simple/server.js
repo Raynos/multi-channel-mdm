@@ -1,18 +1,5 @@
 var MultiChannel = require("../..")
-    , net = require("net")
-    , MuxDemux = require("mux-demux")
+    , MuxDemux = require("mux-demux-net")
     , channel = MultiChannel()
 
-net.createServer(function (con) {
-    var mdm = MuxDemux({
-        error: false
-    })
-
-    mdm.on("connection", function (stream) {
-        channel(stream, {
-            streamName: stream.meta
-        })
-    })
-    
-    con.pipe(mdm).pipe(con)
-}).listen(8642)
+MuxDemux(channel, 8642)

@@ -1,20 +1,8 @@
 var MultiChannel = require("../..")
-    , net = require("net")
-    , MuxDemux = require("mux-demux")
+    , MuxDemux = require("mux-demux-net")
     , RedisStore = require("redis-stream-store")
-    , redisStore = RedisStore(6379, "localhost", "redis-demo")
+
+var redisStore = RedisStore(6379, "localhost", "redis-demo")
     , channel = MultiChannel(redisStore)
 
-net.createServer(function (con) {
-    var mdm = MuxDemux({
-        error: false
-    })
-
-    mdm.on("connection", function (stream) {
-        channel(stream, {
-            streamName: stream.meta
-        })
-    })
-    
-    con.pipe(mdm).pipe(con)
-}).listen(process.argv[2] || 8642)
+MuxDemux(channel, process.argv[2] || 8642)

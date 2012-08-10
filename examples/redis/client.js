@@ -1,13 +1,5 @@
-console.log("argv", process.argv)
-
-var net = require("net")
-    , MuxDemux = require("mux-demux")
-    , mdm = MuxDemux({
-        error: false
-    })
-    , con = net.connect(process.argv[2] || 8642)
-
-mdm.pipe(con).pipe(mdm)
+var MuxDemux = require("mux-demux-net")
+    , mdm = MuxDemux(process.argv[2] || 8642)
 
 var room1 = mdm.createStream("room1")
     , room2 = mdm.createStream("room2")

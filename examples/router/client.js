@@ -1,9 +1,5 @@
-var net = require("net")
-    , MuxDemux = require("mux-demux")
-    , mdm = MuxDemux()
-    , con = net.connect(8642)
-
-mdm.pipe(con).pipe(mdm)
+var MuxDemux = require("mux-demux-net")
+    , mdm = MuxDemux(8642)
 
 var room1 = mdm.createStream("/channel/room1")
     , room2 = mdm.createStream("/channel/room2")
