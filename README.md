@@ -4,74 +4,70 @@ Create multiple channels using mux-demux
 
 ## Example server
 
-    var MultiChannel = require("multi-channel-mdm")
-        , net = require("net")
-        , MuxDemux = require("mux-demux")
-        , channel = MultiChannel()
+A channel is a function that pipes up the incoming stream to a persistant stream based on the incoming stream name.
 
-    net.createServer(function (con) {
-        var mdm = MuxDemux({
-                error: false
-            })
+This means that when multiple clients connect to the channel then each message to the channel is relayed to all of them
 
-        mdm.on("connection", function (stream) {
-            channel(stream, {
-                streamName: stream.meta
-            })
-        })
-        
-        con.pipe(mdm).pipe(con)
-    }).listen(8642)
+``` js
+var MultiChannel = require("multi-channel-mdm")
+    , MuxDemux = require("mux-demux-net")
+    , channel = MultiChannel()
+
+MuxDemux(channel, 8642)
+```
 
 ## Example client
 
-    var net = require("net")
-        , MuxDemux = require("mux-demux")
-        , mdm = MuxDemux()
-        , con = net.connect(8642)
+Spin up multiple clients to note that each has been piped up to the back end channel. This basically functions as broadcasting to all open connections to the channel
 
-    mdm.pipe(con).pipe(mdm)
+``` js
+var MuxDemux = require("mux-demux-net")
+    , mdm = MuxDemux(8642)
 
-    var room1 = mdm.createStream("room1")
-        , room2 = mdm.createStream("room2")
+var room1 = mdm.createStream("room1")
+    , room2 = mdm.createStream("room2")
 
-    room1.on("data", console.log.bind(console, "room1"))
-    room2.on("data", console.log.bind(console, "room2"))
+room1.on("data", console.log.bind(console, "room1"))
+room2.on("data", console.log.bind(console, "room2"))
 
-    room1.write("hello")
-    room2.write("world")
+room1.write("hello")
+room2.write("world")
+```
 
 ## Example server using a router
 
-multi channel was created to interact nicely with the routes router. Notice how you can also pass a persistance store directly to multi channel so you have control over how the streamName to stream mapping occurs
+multi channel was created to interact nicely with the stream router. 
 
-    var multiChannel = require("multi-channel-mdm")
-        , net = require("net")
-        , MuxDemux = require("mux-demux")
-        , streamStore = require("memory-store").createStore()
-        , Router = require("routes").Router
-        , router = new Router()
+Notice how you can also pass a persistance store directly to multi channel so you have control over how the streamName to stream mapping occurs
 
-    router.addRoute("/channel/:streamName", multiChannel(streamStore))
+``` js
+var MultiChannel = require("../..")
+    , MuxDemux = require("mux-demux-net")
+    , StreamRouter = require("stream-router")
+    , StreamStore = require("stream-store")
+    
+var router = StreamRouter(StreamStore())
+    , channel = MultiChannel()
 
-    net.createServer(function (con) {
-        var mdm = MuxDemux({
-            error: false
-        })
-        mdm.on("connection", function (stream) {
-            var route = router.match(stream.meta)
+MuxDemux(router, 8642)
 
-            if (route.fn) {
-                route.fn(stream, route.params)
-            }
+router.addRoute("/channel/:streamName", channel)
+```
 
-            stream.on("error", function (err) {
-                console.log("error occurred!", err.message)
-                stream.end()
-            })
-        })
-        con.pipe(mdm).pipe(con)
-    }).listen(8642)
+## Example server using a redis store
+
+If you use a store that has a database you can distribute your channels!
+
+``` js
+var MultiChannel = require("../..")
+    , MuxDemux = require("mux-demux-net")
+    , RedisStore = require("redis-stream-store")
+
+var redisStore = RedisStore(6379, "localhost", "redis-demo")
+    , channel = MultiChannel(redisStore)
+
+MuxDemux(channel, process.argv[2] || 8642)
+```
 
 ## Installation
 
