@@ -1,5 +1,4 @@
-var through = require("through")
-    , StreamStore = require("stream-store")
+var StreamStore = require("stream-store")
     , partial = require("ap").partial
 
 module.exports = MultiChannel
